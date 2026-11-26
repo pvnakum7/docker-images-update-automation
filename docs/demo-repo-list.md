@@ -1,0 +1,11 @@
+https://github.com/deis/example-dockerfile-python/tree/master
+https://github.com/stevemar/sample-python-app.git
+https://github.com/RamiKrispin/python-image-optimization.git
+https://github.com/VikramBabariya/inventory-system.git
+https://github.com/LondheShubham153/python-multistage-docker.git
+https://github.com/CodeWithPraveen/labs-docker-optimize.git
+https://github.com/pvnakum7/dotnetcore-mcr-multistage-dockerfile.git
+https://github.com/microsoft/todo-app-java-on-azure.git
+https://github.com/SoftInstigate/maven-aws-docker.git
+https://github.com/usabilla/php-docker-template.git
+https://github.com/matheusbloise/docker-multi-stage-php-nginx.git

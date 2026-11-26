@@ -1,0 +1,276 @@
+20. GitHub Actions Workflow – Automation, Scheduling, and Technology Stack Support
+
+Act as an experienced GitHub Actions, DevOps, Python, Docker, and CI/CD engineer.
+
+Design and implement a complete GitHub Actions workflow for the Docker Image Update Automation project.
+
+The workflow must be production-ready, fully configurable, and capable of running both manually and automatically on a scheduled basis.
+
+A. GitHub Actions Workflow Creation
+
+Create the required GitHub Actions workflow file:
+
+.github/workflows/docker-image-update.yml
+
+The workflow must support:
+
+Manual execution using workflow_dispatch.
+Scheduled execution using GitHub Actions schedule with configurable cron expressions.
+Configurable execution frequency (daily, weekly, or monthly).
+Automatic execution without manual intervention.
+Manual input parameters to select:
+All repositories or selected repositories.
+Same-major upgrade or new-major upgrade.
+Dry-run or actual update.
+Report-only or update-and-create-PR mode.
+Proper execution logs and error reporting.
+Uploading generated reports as GitHub Actions artifacts.
+Email notifications after execution.
+
+The workflow must use the latest stable, compatible GitHub Actions versions available at implementation time. Do not blindly use outdated action versions.
+
+B. Automatic Technology Stack Detection
+
+Our GitHub repositories contain different application technologies.
+
+The automation must identify the technology stack used by each repository by inspecting repository files, build manifests, and project configuration.
+
+Support at least the following technologies:
+
+Technology	Detection Files / Indicators
+Node.js	package.json, package-lock.json, .nvmrc
+React	package.json, React dependencies
+Angular	angular.json, package.json
+Python	requirements.txt, pyproject.toml, Pipfile, setup.py
+.NET Core / .NET	*.csproj, *.sln, global.json
+Go	go.mod, go.sum
+Java Maven	pom.xml, mvnw
+Java Gradle	build.gradle, build.gradle.kts
+Java	pom.xml, build.gradle, JDK configuration
+
+Support repositories containing multiple technologies or components.
+
+For example, one repository may contain:
+
+React frontend.
+Python backend.
+Java microservice.
+Node.js build stage.
+
+Do not assume that one repository contains only one technology.
+
+Generate a technology detection summary for each repository.
+
+C. Docker Base Image and Technology Compatibility
+
+Ensure that Docker image upgrades consider the application technology and its build requirements.
+
+Examples:
+
+Node.js application: Node.js runtime and build-stage compatibility.
+React application: Node.js build stage and web-server runtime.
+Angular application: Node.js build stage and production runtime.
+Python application: Python runtime and compatible OS distribution.
+.NET application: SDK image for build stage and ASP.NET runtime image for production stage.
+Go application: Go builder image and compatible runtime image.
+Java Maven application: Maven/JDK builder image and Java runtime image.
+
+Support multi-stage Dockerfiles and independently analyze every FROM instruction.
+
+Preserve compatible image variants, including slim, alpine, bookworm, bullseye, and other existing variants.
+
+Do not upgrade an image merely because a newer version exists. Consider application compatibility and build/runtime requirements.
+
+When compatibility cannot be established, mark the upgrade as requiring validation instead of applying it automatically.
+
+D. Automatic Dependency Installation in GitHub Actions
+
+The GitHub Actions workflow must install all Python packages and system dependencies required by the automation.
+
+Requirements:
+
+Use a supported stable Python version.
+Set up Python using an appropriate GitHub Actions setup action.
+Install dependencies from requirements.txt.
+Install any required system packages.
+Install Docker and Docker Buildx where required.
+Configure GitHub CLI if used for pull request creation.
+Install any additional utilities required for registry inspection, Dockerfile parsing, validation, reporting, or email delivery.
+
+Do not assume that the GitHub Actions runner already has every required package installed.
+
+Create a dedicated dependency installation step.
+
+Use pinned or appropriately constrained Python dependencies to ensure reproducible executions.
+
+Cache dependencies where practical to reduce workflow execution time.
+
+The workflow must fail clearly if a required dependency cannot be installed.
+
+E. Technology-Specific Dockerfile Validation
+
+After updating Docker images, perform appropriate validation.
+
+Where configured, support:
+
+Node.js: npm or yarn dependency/build validation.
+React: production build validation.
+Angular: Angular production build validation.
+Python: dependency installation and application validation.
+.NET: dotnet restore and dotnet build.
+Go: go mod download and go build.
+Java Maven: mvn validate, mvn test, or mvn package.
+Java Gradle: Gradle validation and build.
+
+Important:
+
+Do not run every technology-specific build command against every repository.
+
+First detect the technology and relevant project files.
+
+Only execute applicable validation steps.
+
+Allow validation to be configured because some repositories may require private package feeds, external services, databases, environment variables, or proprietary dependencies.
+
+Do not expose credentials in build logs.
+
+If validation cannot be performed because required external dependencies or secrets are unavailable, report VALIDATION_NOT_EXECUTED with an explanation rather than falsely marking the upgrade as successful.
+
+F. Scheduled Execution and Time Zone
+
+Provide configurable scheduling through GitHub Actions cron.
+
+The schedule must be configurable without modifying Python source code.
+
+Document that GitHub Actions cron schedules use UTC.
+
+Allow the user to configure the desired execution schedule through workflow configuration.
+
+Include:
+
+Scheduled execution date and time.
+Actual execution start time.
+Execution completion time.
+Total execution duration.
+
+Prevent overlapping executions using GitHub Actions concurrency controls.
+
+G. Repository Processing and Failure Isolation
+
+The workflow must process all repositories independently.
+
+If:
+
+One repository cannot be accessed,
+One Dockerfile is invalid,
+One registry is unavailable,
+One image version cannot be determined,
+One application build fails,
+
+the automation must continue processing the remaining repositories.
+
+Capture each failure in the appropriate repository report and consolidated CSV.
+
+At the end, calculate the overall status based on actual processing results.
+
+H. GitHub Actions Security
+
+Use GitHub Actions Secrets and environment variables.
+
+Required secrets may include:
+
+GITHUB_TOKEN
+SMTP_SERVER
+SMTP_PORT
+SMTP_USERNAME
+SMTP_PASSWORD
+EMAIL_FROM
+EMAIL_TO
+EMAIL_CC
+
+Use the minimum required GitHub permissions.
+
+Avoid printing tokens, passwords, or private registry credentials.
+
+Use secure handling of temporary repository directories.
+
+Do not expose secrets in generated reports or uploaded artifacts.
+
+I. End-to-End Workflow Validation – Mandatory
+
+Before declaring the implementation complete, validate the entire solution.
+
+Do not stop after generating Python files and YAML configuration.
+
+Perform the following checks:
+
+Validate Python syntax for every module.
+Validate imports and dependency availability.
+Run unit tests.
+Test Dockerfile parsing with single-stage Dockerfiles.
+Test multi-stage Dockerfiles.
+Test multiple FROM instructions.
+Test ARG-based image references.
+Test Docker Hub and OCI-compatible registry handling.
+Test same-major version selection.
+Test new-major version selection.
+Test stable-version filtering and prerelease exclusion.
+Test image variants such as slim and alpine.
+Test all supported technology detection scenarios.
+Validate generated repository text reports.
+Validate consolidated CSV generation.
+Validate repository and overall summary counts.
+Validate email generation and attachment handling.
+Validate GitHub Actions YAML syntax.
+Validate workflow dependency installation.
+Validate manual and scheduled execution configuration.
+Test failure isolation across multiple repositories.
+Test dry-run mode to ensure no unintended Dockerfile modifications.
+
+Use mocked registry responses and temporary test repositories for unit and integration tests where live services or credentials are unavailable.
+
+Do not claim that live GitHub integration, email delivery, registry access, or application builds have been successfully tested unless they were actually executed.
+
+J. Final Deliverables
+
+Provide:
+
+Complete Python automation source code.
+All required Python dependencies.
+Technology detection module.
+Dockerfile parsing and update modules.
+Registry discovery and version comparison modules.
+Dockerfile validation module.
+GitHub repository management module.
+Repository-level report generator.
+Consolidated CSV report generator.
+Email notification module.
+Complete GitHub Actions workflow YAML.
+Scheduled execution configuration.
+GitHub Secrets setup documentation.
+Unit and integration tests.
+README with complete installation and execution instructions.
+Sample output reports for different technology stacks.
+K. Final Acceptance Criteria
+
+The project is considered complete only when:
+
+All Python modules pass syntax checks.
+Required dependencies install successfully in a clean environment.
+Unit tests pass.
+Dockerfile parser tests pass.
+Multi-stage Dockerfile scenarios work correctly.
+All listed technology stacks are detected correctly in test fixtures.
+Registry discovery and version comparison are tested.
+Repository-level and consolidated reports are generated correctly.
+GitHub Actions workflow YAML is validated.
+Scheduled and manual execution are configured.
+Secrets are handled securely.
+Failures are isolated and reported correctly.
+No unrelated repository files are modified.
+
+Before finalizing the code, identify any incomplete functionality, unsupported registry behavior, environment limitations, or untested integrations.
+
+Do not provide a solution that only looks complete.
+
+Deliver a tested, maintainable, modular implementation with clear instructions for deployment and execution through GitHub Actions.

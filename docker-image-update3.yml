@@ -1,0 +1,237 @@
+name: Docker Image Update
+
+# ---------------------------------------------------------------------------------------------
+# SCHEDULING (all times are UTC - GitHub Actions cron always runs in UTC)
+#   The workflow wakes up once a day at 02:30 UTC. A tiny "gate" job then decides whether the
+#   real run is due, based on the repository VARIABLE  SCHEDULE_FREQUENCY  (Settings > Secrets and
+#   variables > Actions > Variables):
+#       daily    -> run every day
+#       weekly   -> run on SCHEDULE_WEEKDAY (1=Mon ... 7=Sun, default 1)          [default]
+#       monthly  -> run on SCHEDULE_DAY_OF_MONTH (1-28, default 1)
+#   => Change frequency without touching code or this file.
+#   To change the time of day, edit the cron line below (cron cannot be read from a variable).
+#   India Standard Time = UTC+05:30, so 02:30 UTC = 08:00 IST.
+# ---------------------------------------------------------------------------------------------
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+    inputs:
+      repositories:
+        description: "Repo_Name values to process, comma separated. Empty = ALL repositories in the Excel file"
+        required: false
+        default: ""
+        type: string
+      upgrade_strategy:
+        description: "Which upgrade strategy to evaluate"
+        required: true
+        default: same_major
+        type: choice
+        options: [same_major, new_major, both]
+      dry_run:
+        description: "Dry run: evaluate and report only, NEVER modify a Dockerfile"
+        required: true
+        default: true
+        type: boolean
+      run_mode:
+        description: "report_only, or update_and_create_pr (needs dry_run=false and a PAT with write access)"
+        required: true
+        default: report_only
+        type: choice
+        options: [report_only, update_and_create_pr]
+      auto_apply_major:
+        description: "Allow automatic NEW-MAJOR upgrades when compatibility is established (risky)"
+        required: true
+        default: false
+        type: boolean
+      technology_validation:
+        description: "Run technology build checks (npm/mvn/dotnet/go...) for detected technologies"
+        required: true
+        default: false
+        type: boolean
+      docker_build_validation:
+        description: "Run a real docker build of every modified Dockerfile"
+        required: true
+        default: false
+        type: boolean
+      send_email:
+        description: "Send the consolidated email"
+        required: true
+        default: true
+        type: boolean
+
+# The workflow's own token only needs to read this (tooling) repository.
+# Access to the *target* repositories comes from the GH_PAT secret.
+permissions:
+  contents: read
+
+# Never let two runs overlap (a queued run waits instead of cancelling the active one)
+concurrency:
+  group: docker-image-update
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.15"
+  FORCE_COLOR: "0"
+
+jobs:
+  gate:
+    name: Decide whether a run is due
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - name: Decide
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          FREQUENCY: ${{ vars.SCHEDULE_FREQUENCY }}
+          WEEKDAY: ${{ vars.SCHEDULE_WEEKDAY }}
+          DAY_OF_MONTH: ${{ vars.SCHEDULE_DAY_OF_MONTH }}
+        run: |
+          set -euo pipefail
+          run=true
+          if [ "$EVENT" = "schedule" ]; then
+            freq="${FREQUENCY:-weekly}"
+            case "$freq" in
+              daily)   run=true ;;
+              weekly)  [ "$(date -u +%u)" = "${WEEKDAY:-1}" ] && run=true || run=false ;;
+              monthly) [ "$(date -u +%-d)" = "${DAY_OF_MONTH:-1}" ] && run=true || run=false ;;
+              *) echo "::error::SCHEDULE_FREQUENCY must be daily, weekly or monthly (got '$freq')"; exit 1 ;;
+            esac
+            echo "Scheduled trigger (UTC $(date -u '+%Y-%m-%d %H:%M')): frequency=$freq -> run=$run"
+          else
+            echo "Manual trigger -> run=true"
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+  update:
+    name: Scan, upgrade and report
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out automation code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install system packages
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends git ca-certificates
+          git --version
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Install Python dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip check
+          python -c "import yaml, openpyxl, requests; print('Python dependencies OK')"
+
+      - name: Verify toolchain
+        run: |
+          set -euo pipefail
+          python --version
+          docker --version
+          docker buildx version
+          # GitHub CLI is NOT required: pull requests are opened through the REST API.
+
+      - name: Run self-tests
+        run: python -m pytest -q
+
+      - name: Resolve run parameters
+        id: params
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          IN_REPOS: ${{ inputs.repositories }}
+          IN_STRATEGY: ${{ inputs.upgrade_strategy }}
+          IN_DRY_RUN: ${{ inputs.dry_run }}
+          IN_MODE: ${{ inputs.run_mode }}
+          IN_AUTO_MAJOR: ${{ inputs.auto_apply_major }}
+          IN_TECH: ${{ inputs.technology_validation }}
+          IN_BUILD: ${{ inputs.docker_build_validation }}
+          IN_EMAIL: ${{ inputs.send_email }}
+          VAR_STRATEGY: ${{ vars.SCHEDULED_STRATEGY }}
+          VAR_DRY_RUN: ${{ vars.SCHEDULED_DRY_RUN }}
+          VAR_MODE: ${{ vars.SCHEDULED_MODE }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            repos="$IN_REPOS"; strategy="$IN_STRATEGY"; dry="$IN_DRY_RUN"; mode="$IN_MODE"
+            auto="$IN_AUTO_MAJOR"; tech="$IN_TECH"; build="$IN_BUILD"; email="$IN_EMAIL"
+            scheduled="manual"
+          else
+            # Scheduled runs use SAFE defaults unless repository variables say otherwise
+            repos=""; strategy="${VAR_STRATEGY:-same_major}"; dry="${VAR_DRY_RUN:-true}"; mode="${VAR_MODE:-report_only}"
+            auto="false"; tech="false"; build="false"; email="true"
+            scheduled="cron '${SCHEDULE}' on $(date -u +%Y-%m-%d) (UTC)"
+          fi
+          # Validate everything that reaches the environment (no injection through inputs)
+          case "$strategy" in same_major|new_major|both) ;; *) echo "::error::invalid strategy"; exit 1 ;; esac
+          case "$mode" in report_only|update_and_create_pr) ;; *) echo "::error::invalid run_mode"; exit 1 ;; esac
+          for v in "$dry" "$auto" "$tech" "$build" "$email"; do
+            case "$v" in true|false) ;; *) echo "::error::boolean parameter must be true/false"; exit 1 ;; esac
+          done
+          if ! printf '%s' "$repos" | grep -Eq '^[A-Za-z0-9._, -]*$'; then
+            echo "::error::repositories contains unsupported characters"; exit 1
+          fi
+          report_only=false; create_pr=false
+          if [ "$dry" = "true" ] || [ "$mode" = "report_only" ]; then report_only=true; else create_pr=true; fi
+          {
+            echo "DIU_STRATEGY=$strategy"
+            echo "DIU_REPORT_ONLY=$report_only"
+            echo "DIU_DRY_RUN=$dry"
+            echo "DIU_CREATE_PR=$create_pr"
+            echo "DIU_AUTO_MAJOR=$auto"
+            echo "DIU_TECH_VALIDATION=$tech"
+            echo "DIU_DOCKER_BUILD=$build"
+            echo "DIU_EMAIL_ENABLED=$email"
+            echo "DIU_REPOSITORIES=$repos"
+            echo "SCHEDULED_TIME=$scheduled"
+          } >> "$GITHUB_ENV"
+          echo "strategy=$strategy dry_run=$dry mode=$mode report_only=$report_only create_pr=$create_pr auto_major=$auto repos='${repos:-ALL}'"
+
+      - name: Run Docker image update
+        env:
+          # GitHub forbids secrets whose name starts with GITHUB_, so the PAT is stored as GH_PAT
+          # and exposed to the program as GITHUB_TOKEN. Falls back to the run's own token
+          # (which can only reach THIS repository).
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_CC: ${{ secrets.EMAIL_CC }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: python -m src.main --config config/settings.yaml
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: docker-image-update-reports-${{ github.run_id }}
+          path: |
+            reports/
+          retention-days: 30
+          if-no-files-found: warn

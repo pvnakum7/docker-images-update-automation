@@ -1,0 +1,13 @@
+{
+  "inputs": {
+    "repositories": "",
+    "upgrade_strategy": "same_major",
+    "dry_run": "true",
+    "run_mode": "report_only",
+    "auto_apply_major": "false",
+    "technology_validation": "false",
+    "docker_build_validation": "false",
+    "send_email": "false",
+    "test_mode": "true"
+  }
+}

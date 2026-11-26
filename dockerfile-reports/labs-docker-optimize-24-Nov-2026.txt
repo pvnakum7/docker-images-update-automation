@@ -1,0 +1,30 @@
+Repository: labs-docker-optimize
+Date: 2026-11-24
+Repository URL: https://github.com/CodeWithPraveen/labs-docker-optimize.git
+
+REPOSITORY PROCESSING FAILED: auth: token GIT_TOKEN is not configured (secret/environment variable missing or empty)
+
+Technology Detection Summary
+  No supported technology detected
+
+"Dockerfile Image Update Details"
+(no Dockerfiles found)
+
+Validation Details
+(none)
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-24
+Repository Name: labs-docker-optimize
+Repository Link: https://github.com/CodeWithPraveen/labs-docker-optimize.git
+
+Total Dockerfiles: 0
+Total FROM instructions: 0
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 0
+Major Upgrade Recommendations: 0
+Overall Status: FAILED

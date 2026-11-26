@@ -1,0 +1,498 @@
+Project: Automated Docker Image Version Upgrade Across Multiple GitHub Repositories
+
+Act as a Senior Python Developer, DevOps Engineer, Docker Specialist, and GitHub Actions Automation Expert.
+
+I need a production-ready Python automation tool that scans multiple GitHub repositories, identifies Dockerfiles, checks Docker image versions, upgrades images to the latest stable versions, and generates detailed reports.
+
+The solution must support private and public GitHub repositories and run automatically through GitHub Actions.
+
+1. Input Configuration
+
+I have an Excel file containing a list of repositories and their corresponding POC (Point of Contact) information.
+
+The Excel file contains the following columns:
+
+Repo_Name
+Repo_Link
+POC
+Email
+CC_Email
+
+Each row represents one GitHub repository.
+
+The Python script must:
+
+Read all repositories from the Excel file.
+Process each repository independently.
+Support private and public repositories.
+Authenticate to private repositories using a GitHub Personal Access Token stored in GitHub Actions Secrets.
+Process all repositories listed in the Excel file in a single execution.
+Generate individual reports for each repository.
+Generate one consolidated CSV report for all repositories.
+
+Do not hardcode GitHub tokens, passwords, email addresses, or other credentials.
+
+2. GitHub Repository Access
+
+Use the GitHub API or Git operations to access repositories.
+
+Authentication:
+
+Read GITHUB_TOKEN from environment variables.
+Retrieve the token from GitHub Actions Secrets.
+Support private and public repositories.
+Handle authentication failures, repository not found, permission denied, API rate limits, and network errors gracefully.
+
+Clone or download the repository into a temporary working directory.
+
+Do not modify unrelated repository files.
+
+3. Dockerfile Discovery
+
+Search for Dockerfiles in each repository.
+
+Requirements:
+
+Find files named Dockerfile.
+Find files named Dockerfile.dev, Dockerfile.prod, Dockerfile.test, Dockerfile.custom, and similar Dockerfile variants.
+Support Dockerfiles located in the repository root.
+Support nested folders up to four directory levels.
+Support multiple Dockerfiles in the same repository.
+Avoid scanning .git, node_modules, vendor, virtual environments, and other irrelevant directories.
+Preserve the original directory structure.
+
+Record the relative path of every Dockerfile.
+
+4. Docker Image Version Detection
+
+Analyze every Dockerfile and identify all FROM instructions.
+
+Examples:
+
+FROM node:22.22.0-slim FROM python:3.12.5-slim FROM nginx:1.27-alpine
+
+Support:
+
+Single-stage Dockerfiles.
+Multi-stage Dockerfiles.
+Multiple FROM instructions.
+FROM instructions with AS aliases.
+Multiple images in the same Dockerfile.
+BuildKit syntax.
+ARG variables used in FROM instructions.
+Images using digest references.
+Images using custom registry URLs.
+
+For multi-stage Dockerfiles, analyze and report every FROM instruction independently.
+
+Example:
+
+FROM node:22.22.0-slim AS builder FROM nginx:1.27-alpine AS production
+
+Both images must be evaluated and updated independently.
+
+5. Container Registry Support
+
+Do not assume all Docker images come from Docker Hub.
+
+Support public container registries, including:
+
+Docker Hub
+GitHub Container Registry (GHCR)
+Amazon Elastic Container Registry Public (ECR Public)
+Google Artifact Registry public images
+Microsoft Azure Container Registry (ACR) public images
+Oracle Container Registry
+Quay.io
+Red Hat public registries
+Kubernetes-related public registries
+Other OCI-compatible public container registries.
+
+Determine the correct registry from the image reference.
+
+Use registry APIs, OCI Distribution Specification APIs, official registry metadata, or other reliable methods to discover available tags and digests.
+
+Do not assume every registry supports the same API.
+
+If a registry cannot be queried, mark the image as SKIP with an explanatory reason.
+
+6. Image Upgrade Strategy
+
+For every image, implement TWO independent upgrade strategies.
+
+Strategy A: Latest Stable Patch/Minor Version Within the Existing Major Version
+
+Upgrade the image to the latest stable version while preserving its existing major version.
+
+Example:
+
+Current: node:22.22.0-slim
+
+Possible upgrades: node:22.23.0-slim node:22.23-slim node:22-slim
+
+Select the latest available stable tag that:
+
+Preserves the existing major version.
+Preserves the image variant, such as slim, alpine, bookworm, or bullseye, whenever available.
+Is compatible with the existing image configuration.
+Is not a prerelease, beta, alpha, RC, nightly, or development release.
+
+Prefer a fully specified version tag over a floating major-only tag when available.
+
+Strategy B: Latest Stable New Major Version
+
+Upgrade the image to the latest stable major version.
+
+Example:
+
+Current: node:22.22.0-slim
+
+Possible upgrade: node:26.13.0-slim
+
+Select the latest stable release available at execution time.
+
+Requirements:
+
+Detect the latest stable major version dynamically.
+Preserve compatible image variants.
+Do not hardcode current versions.
+Exclude prereleases.
+Prefer fully pinned versions.
+Validate that the selected tag actually exists in the registry.
+
+IMPORTANT:
+
+A newer major version can introduce breaking changes.
+
+Do not automatically assume that the application is compatible with a new major version.
+
+For major upgrades:
+
+Generate a proposed upgrade.
+Mark the result as MAJOR_UPGRADE_RECOMMENDED or MAJOR_UPGRADE_REQUIRES_VALIDATION.
+Allow configurable automatic major upgrades.
+Keep automatic major upgrades disabled by default unless explicitly enabled.
+
+Provide configuration options to run:
+
+Same-major upgrade only.
+New-major upgrade only.
+Both strategies.
+Report-only mode without modifying Dockerfiles.
+7. Dockerfile Modification
+
+Update Dockerfile FROM instructions while preserving:
+
+Existing formatting.
+Comments.
+Line breaks.
+Stage aliases.
+Build arguments.
+Platform declarations.
+Image variants.
+Other Dockerfile instructions.
+
+Example:
+
+Before: FROM --platform=linux/amd64 node:22.22.0-slim AS builder
+
+After: FROM --platform=linux/amd64 node:22.23.0-slim AS builder
+
+Do not update images that are already using the latest appropriate version.
+
+Do not blindly replace text using global string replacement.
+
+Use a Dockerfile-aware parser or a carefully designed line-based parser.
+
+Support FROM references using ARG variables. If a variable cannot be resolved safely, report it as SKIP rather than guessing.
+
+Do not silently change image names, registry hosts, or image variants.
+
+8. Safety and Validation
+
+Before modifying any Dockerfile:
+
+Save the original file content.
+Identify the exact FROM instruction.
+Verify the new image tag exists.
+Confirm the image variant is compatible.
+Avoid prerelease versions.
+Avoid changing digest-pinned images unless an explicit digest-update policy is enabled.
+Prevent downgrades.
+Prevent accidental cross-major changes in same-major mode.
+
+After modifying the Dockerfile:
+
+Validate Dockerfile syntax using docker buildx build --check where available, or another suitable validation method.
+Optionally run a Docker build when configured.
+Record validation results.
+If modification or validation fails, restore the original Dockerfile.
+Never leave a partially modified Dockerfile.
+
+Do not commit changes automatically unless explicitly configured.
+
+9. Individual Repository Report
+
+For each repository, generate a report in the repository root:
+
+<Repo_Name>-Docker-report.txt
+
+The report must contain a detailed table.
+
+Example:
+
+Repository: my-node-application Date: YYYY-MM-DD Repository URL: https://github.com/org/my-node-application
+
+"Dockerfile Image Update Details"
+Dockerfile Location,        Registry,	Image Name,	Old Image Version,	    New Image Version,	Upgrade Type,	Status,	              Remarks
+Dockerfile,                 Docker Hub,	node,	    node:22.22.0-slim,	    node:22.23.0-slim,	Same Major,	    UPDATED,    	      Stable update
+Dockerfile,	                Docker Hub,	nginx,  	nginx:1.27-alpine,	    nginx:1.28-alpine,	Same Major,	    UPDATED,    	      Stable update
+services/api/Dockerfile,	GHCR,	    custom-api,	ghcr.io/org/api:v2.0,	       -         ,	Same Major,	    SKIPPED,    	      Unable to determine stable version
+frontend/Dockerfile,	    Docker Hub,	node,	    node:22.22.0-slim,	    node:26.13.0-slim,	New Major,	    REQUIRES_VALIDATION,  Breaking changes possible
+
+Supported statuses:
+
+UPDATED
+SKIPPED
+FAILED
+UP_TO_DATE
+MAJOR_UPGRADE_RECOMMENDED
+REQUIRES_VALIDATION
+NOT_SUPPORTED
+INVALID_IMAGE
+VALIDATION_FAILED
+Repository Summary
+
+At the end of the same text report, add:
+
+Repo Dockerfile Image Update Summary:
+
+Date: YYYY-MM-DD Repository Name: my-node-application Repository Link: https://github.com/org/my-node-application
+
+Total Dockerfiles: 5 Total FROM instructions: 8 Updated Images: 3 Skipped Images: 1 Failed Images: 1 Up-to-date Images: 2 Major Upgrade Recommendations: 1
+
+Make sure the counts are accurate and distinguish Dockerfile counts from individual image instruction counts.
+
+10. Consolidated CSV Report
+
+Generate one CSV file for all repositories:
+
+Dockerfile-update-report-YYYY-MM-DD.csv
+
+The CSV must contain one row per repository.
+
+Required columns:
+
+Repo_Name Repo_Link POC Email CC_Email Total_Dockerfiles Total_FROM_Instructions Updated_Dockerfiles Updated_Images Skipped_Dockerfiles Skipped_Images Failed_Dockerfiles Failed_Images Up_To_Date_Images Major_Upgrade_Recommendations Overall_Status
+
+Example:
+
+Repo_Link ,	POC	    , Total Dockerfiles,	Updated,	Skipped,	Failed
+GitHub URL,	Person-A,        5,                   3,	   1,	      1
+GitHub URL,	Person-B,        4,                   2,	   1,	      1
+GitHub URL,	Person-C,        6,                   5,	   1,	      0
+
+The consolidated CSV must contain all repositories from the input Excel file.
+
+Do not create a separate consolidated CSV for each repository.
+
+11. Overall Execution Summary
+
+At the end of execution, print a consolidated summary in the GitHub Actions logs.
+
+Example:
+
+Overall Dockerfile Update Report
+
+Date: YYYY-MM-DD
+
+Total Repositories: 10 Successfully Processed Repositories: 9 Failed Repositories: 1
+
+Total Dockerfiles: 50 Updated Dockerfiles: 40 Skipped Dockerfiles: 7 Failed Dockerfiles: 3
+
+Total FROM Instructions: 75 Updated Images: 45 Skipped Images: 12 Failed Images: 3 Up-to-date Images: 15
+
+Ensure that the overall counts are calculated from the actual processing results, not hardcoded values.
+
+A repository-level failure must not prevent processing of the remaining repositories.
+
+12. Email Notification
+
+After processing all repositories, send an email containing the consolidated report.
+
+Email requirements:
+
+Send email to the configured recipient.
+Add the configured CC recipients.
+Support multiple recipients separated by commas.
+Attach the consolidated CSV.
+Attach the individual repository text reports, preferably as a ZIP file when there are many repositories.
+Include an overall summary in the email body.
+Include total repositories, Dockerfiles, updated, skipped, and failed counts.
+Include execution date and status.
+
+Example email subject:
+
+Docker Image Upgrade Automation Report - YYYY-MM-DD
+
+Email body:
+
+Hello Team,
+
+The automated Docker image version update process has completed.
+
+Execution Summary:
+
+Total Repositories: 10 Total Dockerfiles: 50 Updated Dockerfiles: 40 Skipped Dockerfiles: 7 Failed Dockerfiles: 3
+
+Please find the consolidated CSV report and individual repository reports attached.
+
+Regards, DevOps Automation
+
+Use SMTP or a configurable email provider.
+
+All email credentials must come from GitHub Actions Secrets.
+
+Support TLS and secure authentication.
+
+13. GitHub Actions Integration
+
+Create a GitHub Actions workflow:
+
+.github/workflows/docker-image-update.yml
+
+Requirements:
+
+Support manual execution using workflow_dispatch.
+Support scheduled execution using cron.
+Execute the Python application.
+Install required dependencies.
+Read GitHub credentials from GitHub Actions Secrets.
+Read SMTP/email credentials from GitHub Actions Secrets.
+Generate all reports.
+Upload reports as GitHub Actions artifacts.
+Send the consolidated email.
+Provide useful execution logs.
+Continue processing remaining repositories if one repository fails.
+
+Suggested GitHub Actions secrets:
+
+GITHUB_TOKEN SMTP_SERVER SMTP_PORT SMTP_USERNAME SMTP_PASSWORD EMAIL_FROM EMAIL_TO EMAIL_CC
+
+Never print secrets in logs.
+
+Use appropriate permissions and avoid requesting unnecessary repository access.
+
+14. Project Structure
+
+Create a maintainable project with modular Python code.
+
+Suggested structure:
+
+docker-image-updater/ | |-- config/ | |-- repositories.xlsx | |-- settings.yaml | |-- src/ | |-- main.py | |-- github_manager.py | |-- dockerfile_scanner.py | |-- dockerfile_parser.py | |-- registry_manager.py | |-- version_manager.py | |-- image_updater.py | |-- validator.py | |-- report_generator.py | |-- email_sender.py | |-- logger.py | |-- reports/ | |-- .github/ | |-- workflows/ | |-- docker-image-update.yml | |-- requirements.txt |-- README.md |-- .gitignore
+
+You can improve this structure if necessary.
+
+15. Configuration Management
+
+Create settings.yaml to control:
+
+Upgrade strategy.
+Same-major upgrade enable/disable.
+New-major upgrade enable/disable.
+Automatic major upgrade enable/disable.
+Report-only mode.
+Maximum Dockerfile depth (default 4).
+Docker build validation.
+Registry timeout.
+Retry count.
+Email notification.
+Report output location.
+Whether to create GitHub branches and pull requests.
+Whether to commit changes.
+
+Use sensible safe defaults.
+
+16. Error Handling and Logging
+
+Implement:
+
+Structured logging.
+Repository-specific logs.
+Dockerfile-specific logs.
+Registry API error handling.
+Retry logic with exponential backoff.
+API rate-limit handling.
+Network timeout handling.
+Invalid image reference handling.
+Missing tag handling.
+Email failure handling.
+CSV and report generation failure handling.
+
+Use clear status codes and explanatory remarks.
+
+A failure in one Dockerfile must not stop the remaining Dockerfiles from processing.
+
+A failure in one repository must not stop the remaining repositories from processing.
+
+17. Important Functional Requirements
+This automation is for multiple GitHub repositories.
+Repository names and POC details come from one Excel sheet.
+Every repository must be processed independently.
+Dockerfiles can exist in the root or up to four subfolder levels.
+Multiple Dockerfiles must be supported.
+Multi-stage Dockerfiles must be fully supported.
+Multiple FROM instructions must be evaluated independently.
+Images can come from any supported public OCI-compatible registry.
+Latest stable versions must be discovered dynamically.
+Both same-major and new-major upgrade strategies must be supported.
+Major upgrades must be treated cautiously.
+Existing image variants must be preserved.
+Dockerfile formatting and unrelated instructions must remain unchanged.
+Individual repository reports must be generated.
+One consolidated CSV must contain all repositories.
+Overall statistics must be accurate.
+Email must be sent to the configured TO and CC recipients.
+The solution must run in GitHub Actions.
+All credentials must come from GitHub Actions Secrets.
+The implementation must be production-ready, modular, and maintainable.
+18. Expected Deliverables
+
+Generate the complete implementation, not just sample code.
+
+Provide:
+
+Complete Python source code for every module.
+requirements.txt.
+repositories.xlsx sample structure.
+settings.yaml.
+GitHub Actions workflow YAML.
+README.md with setup and execution instructions.
+GitHub Secrets configuration instructions.
+Sample repository report.
+Sample consolidated CSV.
+Sample email output.
+Unit tests for version comparison, Dockerfile parsing, multi-stage handling, registry tag discovery, and report generation.
+19. Development Instructions
+
+Before generating the implementation:
+
+Explain the proposed architecture.
+Identify technical limitations and registry-specific differences.
+Explain how version selection will work.
+Explain how you will prevent unsafe major upgrades.
+Explain how Dockerfile changes will be validated.
+
+Then generate the complete implementation module by module.
+
+Do not provide pseudocode or incomplete placeholder functions.
+
+Do not hardcode image versions.
+
+Do not assume Docker Hub is the only registry.
+
+Use official registry APIs and reliable version metadata wherever possible.
+
+Ensure all scripts are compatible with a current stable Python 3 release.
+
+The final solution must be executable through GitHub Actions with configuration and secrets supplied by the user.

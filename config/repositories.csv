@@ -1,0 +1,15 @@
+Repo_Name,Repo_Link,POC,Email,CC_Email,Token_Name
+example-dockerfile-python,https://github.com/deis/example-dockerfile-python.git,pvnakum7@gmail.com,pvnakum77@gmail.com,itpvpatel@gmail.com,GIT_TOKEN
+sample-python-app,https://github.com/stevemar/sample-python-app.git,pvnakum7@gmail.com,pvnakum77@gmail.com,"premrangilo@gmail.com,itpvpatel@gmail.com",GIT_TOKEN
+python-image-optimization,https://github.com/RamiKrispin/python-image-optimization.git,pvnakum7@gmail.com,pvnakum77@gmail.com,premrangilo@gmail.com,GIT_TOKEN
+inventory-system,https://github.com/VikramBabariya/inventory-system.git,pvnakum7@gmail.com,pvnakum77@gmail.com,"premrangilo@gmail.com,itpvpatel@gmail.com",GIT_TOKEN
+python-multistage-docker,https://github.com/LondheShubham153/python-multistage-docker.git,pvnakum7@gmail.com,pvnakum77@gmail.com,premrangilo@gmail.com,GIT_TOKEN
+labs-docker-optimize,https://github.com/CodeWithPraveen/labs-docker-optimize.git,pvnakum7@gmail.com,pvnakum77@gmail.com,"premrangilo@gmail.com,itpvpatel@gmail.com",GIT_TOKEN
+dotnetcore-mcr-multistage-dockerfile,https://github.com/pvnakum7/dotnetcore-mcr-multistage-dockerfile.git,pvnakum7@gmail.com,pvnakum77@gmail.com,itpvpatel@gmail.com,GIT_TOKEN
+todo-app-java-on-azure,https://github.com/microsoft/todo-app-java-on-azure.git,pvnakum7@gmail.com,pvnakum77@gmail.com,"premrangilo@gmail.com,itpvpatel@gmail.com",GIT_TOKEN
+maven-aws-docker,https://github.com/SoftInstigate/maven-aws-docker.git,pvnakum7@gmail.com,pvnakum77@gmail.com,premrangilo@gmail.com,GIT_TOKEN
+php-docker-template,https://github.com/usabilla/php-docker-template.git,pvnakum7@gmail.com,pvnakum77@gmail.com,"premrangilo@gmail.com,itpvpatel@gmail.com",GIT_TOKEN
+docker-multi-stage-php-nginx,https://github.com/matheusbloise/docker-multi-stage-php-nginx.git,pvnakum7@gmail.com,pvnakum77@gmail.com,itpvpatel@gmail.com,GIT_TOKEN
+,,,,,
+,,,,,
+,,,,,

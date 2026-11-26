@@ -1,0 +1,39 @@
+Repository: go-gateway
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/go-gateway
+Branch Analysed: main
+GitHub Token Used: GIT_TOKEN
+
+Technology Detection Summary
+  - Go: .  [go 1.22 (go.mod)]
+
+"Dockerfile Image Update Details"
+Dockerfile Location  Registry                  Image Name                Old Image Version                 New Image Version  Upgrade Type  Status                     Remarks
+-------------------  ------------------------  ------------------------  --------------------------------  -----------------  ------------  -------------------------  ---------------------------------------------------------------------------------------------------------------------------
+Dockerfile           Docker Hub                golang                    golang:1.22.1                     golang:1.22.9      Same Major    UPDATE_AVAILABLE           Stable update
+Dockerfile           Docker Hub                golang                    golang:1.22.1                     golang:1.24.0      New Major     MAJOR_UPGRADE_RECOMMENDED  Breaking changes possible. declared runtime constraint (go.mod) allows the new version; run full build/tests before merging
+Dockerfile           Google Artifact Registry  gcr.io/distroless/static  gcr.io/distroless/static:nonroot  -                  Same Major    NOT_SUPPORTED              Tag 'nonroot' is not a versioned tag (cannot determine stable upgrade)
+
+Validation Details
+Dockerfile Location  Validation                  Details
+-------------------  --------------------------  -------
+Dockerfile           NOT_RUN (nothing modified)  -
+
+Notes
+  - None of the branches dev, development, develop, main exist; used the default branch 'main'
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: go-gateway
+Repository Link: https://github.com/example-org/go-gateway
+
+Total Dockerfiles: 1
+Total FROM instructions: 2
+Updated Images: 0
+Skipped Images: 1
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 1
+Major Upgrade Recommendations: 1
+Overall Status: SUCCESS

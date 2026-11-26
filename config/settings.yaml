@@ -1,0 +1,99 @@
+# ---------------------------------------------------------------------------
+# Docker Image Update Automation - settings
+# Every value below is a SAFE DEFAULT. The GitHub Actions workflow can override
+# the most important ones through DIU_* environment variables (see README).
+# ---------------------------------------------------------------------------
+
+input:
+  repositories_file: config/repositories.xlsx
+  selected_repositories: []        # [] = all rows; or ["repo-a", "repo-b"] (matches Repo_Name)
+
+upgrade:
+  strategy: both                   # same_major | new_major | both
+  report_only: true                # true = NEVER modify Dockerfiles (safe default)
+  auto_apply_major: false          # true = apply a new-major upgrade ONLY when compatibility is established
+  precision: full                  # full: prefer fully pinned tags (22.23.0-slim over 22-slim)
+                                   # match_current: keep the precision already used (1.27-alpine -> 1.28-alpine)
+  digest_policy: skip              # skip: leave digest-pinned images alone | update: re-pin tag + new digest
+  max_dockerfile_depth: 4          # root = 0, a/b/c/d/Dockerfile = 4
+  ignore_dirs: [.git, node_modules, vendor, .venv, venv, env, __pycache__, .tox, dist, build, target, .idea, .gradle, bin, obj, .terraform]
+  # How many leading version numbers make up a "major line" for an image family.
+  # python 3.12 -> 3.13 and golang 1.22 -> 1.23 are breaking, so they count as new majors.
+  release_line_depth:
+    default: 1
+    python: 2
+    golang: 2
+    php: 2
+    ruby: 2
+    mysql: 2
+  stable_major_parity:             # node: only even majors are LTS-eligible; odd ones are never proposed
+    node: even
+
+registry:
+  timeout_seconds: 20
+  retry_count: 3
+  backoff_seconds: 1.5             # exponential: 1.5s, 3s, 6s ...
+  max_tag_pages: 30
+  verify_tag_exists: true          # HEAD the manifest of the chosen tag before proposing it
+
+validation:
+  buildx_check: true               # docker buildx build --check (falls back to a static syntax check)
+  docker_build: false              # real `docker build` of every modified Dockerfile (slow; needs build secrets)
+  docker_build_timeout_seconds: 1800
+  technology:
+    enabled: false                 # opt-in; only commands for DETECTED technologies are run
+    timeout_seconds: 900
+    commands:
+      Node.js: ["npm ci --ignore-scripts", "npm run build --if-present"]
+      React: ["npm ci --ignore-scripts", "npm run build"]
+      Angular: ["npm ci --ignore-scripts", "npx ng build --configuration production"]
+      Python: ["pip install -r requirements.txt"]
+      ".NET": ["dotnet restore", "dotnet build --no-restore"]
+      Go: ["go mod download", "go build ./..."]
+      Java Maven: ["mvn -B -q validate"]
+      Java Gradle: ["./gradlew --no-daemon build -x test"]
+
+git:
+  commit_changes: false            # persist changes to a new branch in the repository
+  create_pull_requests: false      # implies commit_changes; needs a token with contents:write + pull_requests:write
+  branch_prefix: docker-image-update
+  base_branch: null                # set a name to force ONE branch (overrides branch_priority)
+  # Branch to analyse and to target with the PR: the FIRST of these that exists on the remote wins.
+  # None exists -> the repository's default branch. (Also: DIU_BRANCH_PRIORITY="dev,development,develop,main")
+  branch_priority: [dev, development, develop, main]
+  commit_author_name: DevOps Automation
+  commit_author_email: devops-automation@users.noreply.github.com
+
+# TEST MODE: the whole pipeline runs (clone, scan, registry checks, edits, validation, reports, CSV, ZIP, recipient summary)
+# but the e-mail is NOT sent (an .eml preview is saved instead) and pull requests are NOT created.
+# Also switchable with DIU_TEST_MODE=true (workflow input `test_mode`).
+testing:
+  enabled: false
+
+email:
+  enabled: true
+  # Recipients are ALWAYS taken from the Excel file: `Email` column -> TO (application owners), `CC_Email` -> CC (developers).
+  # Cells may hold several addresses separated by comma, semicolon, space or newline. Addresses are validated, de-duplicated
+  # globally (case/whitespace-insensitive) and an address in both columns stays in TO only. ONE consolidated e-mail is sent.
+  #   excel                = Excel file only (default)
+  #   excel_plus_secrets   = additionally merge the optional EMAIL_TO / EMAIL_CC secrets
+  recipients_source: excel
+  subject: "Docker Image Upgrade Automation Report - {date}"
+  use_tls: auto                    # auto (465=SSL, else STARTTLS) | starttls | ssl | none
+  timeout_seconds: 60
+
+output:
+  # ALL per-repository reports go here (relative to the working directory = the Jenkins / Actions workspace),
+  # created when missing, named {repo-name}-{DD-Mon-YYYY}.txt e.g. dockerfile-reports/repo-one-22-Nov-2026.txt.
+  # Reports are never written into the cloned repositories.   (env: DIU_DOCKERFILE_REPORTS_DIR)
+  dockerfile_reports_dir: dockerfile-reports
+  reports_dir: reports             # consolidated CSV, ZIP, overall summary, logs
+  logs_dir: reports/logs
+  # Every repository is cloned into <clones_dir>/<repo-name>/ (e.g. repos/repo-one/) and stays there while the run is in progress.
+  # After ALL repositories are processed and the summary e-mail step is done, the code inside repos/<repo-name>/ is deleted.
+  clones_dir: repos                # (env: DIU_CLONES_DIR)
+  keep_clones: false               # true = skip the clean-up (debugging)
+  log_level: INFO
+
+exit:
+  nonzero_on_repo_failure: false   # true = fail the workflow job if any repository could not be processed

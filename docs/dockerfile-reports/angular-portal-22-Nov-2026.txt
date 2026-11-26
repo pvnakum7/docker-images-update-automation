@@ -1,0 +1,41 @@
+Repository: angular-portal
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/angular-portal
+Branch Analysed: main
+GitHub Token Used: GIT_TOKEN2
+
+Technology Detection Summary
+  - Node.js: .  [node 22 (.nvmrc)]
+  - Angular: .
+
+"Dockerfile Image Update Details"
+Dockerfile Location  Registry    Image Name  Old Image Version  New Image Version    Upgrade Type  Status               Remarks
+-------------------  ----------  ----------  -----------------  -------------------  ------------  -------------------  -------------------------------------------------------------------------------------------------
+Dockerfile           Docker Hub  node        node:22.22.0-slim  node:22.24.0-slim    Same Major    UPDATE_AVAILABLE     Stable update
+Dockerfile           Docker Hub  node        node:22.22.0-slim  node:26.13.0-slim    New Major     REQUIRES_VALIDATION  Breaking changes possible. project declares node 22 (.nvmrc) which does not allow the new version
+Dockerfile           Docker Hub  nginx       nginx:1.27-alpine  nginx:1.29.0-alpine  Same Major    UPDATE_AVAILABLE     Stable update
+Dockerfile           Docker Hub  nginx       nginx:1.27-alpine  -                    New Major     UP_TO_DATE           Already on the newest stable major version
+
+Validation Details
+Dockerfile Location  Validation                  Details
+-------------------  --------------------------  -------
+Dockerfile           NOT_RUN (nothing modified)  -
+
+Notes
+  - None of the branches dev, development, develop, main exist; used the default branch 'main'
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: angular-portal
+Repository Link: https://github.com/example-org/angular-portal
+
+Total Dockerfiles: 1
+Total FROM instructions: 2
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 2
+Major Upgrade Recommendations: 1
+Overall Status: SUCCESS

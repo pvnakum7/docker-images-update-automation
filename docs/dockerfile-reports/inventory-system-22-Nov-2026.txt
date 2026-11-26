@@ -1,0 +1,50 @@
+Repository: inventory-system
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/inventory-system
+Branch Analysed: main
+GitHub Token Used: GIT_TOKEN2
+
+Technology Detection Summary
+  - Node.js: frontend
+  - React: frontend
+
+"Dockerfile Image Update Details"
+Dockerfile Location       Registry    Image Name  Old Image Version   New Image Version    Upgrade Type  Status               Remarks
+------------------------  ----------  ----------  ------------------  -------------------  ------------  -------------------  ------------------------------------------------------------------------------------------------
+Dockerfile                Docker Hub  python      python:3.12.5-slim  python:3.12.9-slim   Same Major    UPDATE_AVAILABLE     Stable update
+Dockerfile                Docker Hub  python      python:3.12.5-slim  python:3.14.0-slim   New Major     REQUIRES_VALIDATION  Breaking changes possible. python image but no matching technology detected for this Dockerfile
+backend/Dockerfile.stage  Docker Hub  python      python:3.12.5-slim  python:3.12.9-slim   Same Major    UPDATE_AVAILABLE     Stable update
+backend/Dockerfile.stage  Docker Hub  python      python:3.12.5-slim  python:3.14.0-slim   New Major     REQUIRES_VALIDATION  Breaking changes possible. python image but no matching technology detected for this Dockerfile
+frontend/Dockerfile       Docker Hub  node        node:22.22.0-slim   node:22.24.0-slim    Same Major    UPDATE_AVAILABLE     Stable update
+frontend/Dockerfile       Docker Hub  node        node:22.22.0-slim   node:26.13.0-slim    New Major     REQUIRES_VALIDATION  Breaking changes possible. technology detected but no declared runtime version to verify against
+frontend/Dockerfile       Docker Hub  nginx       nginx:1.27-alpine   nginx:1.29.0-alpine  Same Major    UPDATE_AVAILABLE     Stable update
+frontend/Dockerfile       Docker Hub  nginx       nginx:1.27-alpine   -                    New Major     UP_TO_DATE           Already on the newest stable major version
+frontend/Dockerfile.dev   Docker Hub  node        node:22.22.0-slim   node:22.24.0-slim    Same Major    UPDATE_AVAILABLE     Stable update
+frontend/Dockerfile.dev   Docker Hub  node        node:22.22.0-slim   node:26.13.0-slim    New Major     REQUIRES_VALIDATION  Breaking changes possible. technology detected but no declared runtime version to verify against
+
+Validation Details
+Dockerfile Location       Validation                  Details
+------------------------  --------------------------  -------
+Dockerfile                NOT_RUN (nothing modified)  -
+backend/Dockerfile.stage  NOT_RUN (nothing modified)  -
+frontend/Dockerfile       NOT_RUN (nothing modified)  -
+frontend/Dockerfile.dev   NOT_RUN (nothing modified)  -
+
+Notes
+  - None of the branches dev, development, develop, main exist; used the default branch 'main'
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: inventory-system
+Repository Link: https://github.com/example-org/inventory-system
+
+Total Dockerfiles: 4
+Total FROM instructions: 5
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 5
+Major Upgrade Recommendations: 4
+Overall Status: SUCCESS

@@ -1,0 +1,41 @@
+Repository: java-maven-service
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/java-maven-service
+Branch Analysed: main
+GitHub Token Used: GIT_TOKEN2
+
+Technology Detection Summary
+  - Java Maven: .  [java 17 (pom.xml)]
+  - Java: .  [java 17 (pom.xml)]
+
+"Dockerfile Image Update Details"
+Dockerfile Location  Registry    Image Name       Old Image Version               New Image Version               Upgrade Type  Status                     Remarks
+-------------------  ----------  ---------------  ------------------------------  ------------------------------  ------------  -------------------------  ----------------------------------------------------------------------------------------------------------------------------
+Dockerfile           Docker Hub  maven            maven:3.9.6-eclipse-temurin-17  maven:3.9.9-eclipse-temurin-17  Same Major    UPDATE_AVAILABLE           Stable update
+Dockerfile           Docker Hub  maven            maven:3.9.6-eclipse-temurin-17  -                               New Major     UP_TO_DATE                 Already on the newest stable major version
+Dockerfile           Docker Hub  eclipse-temurin  eclipse-temurin:17.0.9_9-jre    eclipse-temurin:17.0.13_11-jre  Same Major    UPDATE_AVAILABLE           Stable update
+Dockerfile           Docker Hub  eclipse-temurin  eclipse-temurin:17.0.9_9-jre    eclipse-temurin:25.0.1_8-jre    New Major     MAJOR_UPGRADE_RECOMMENDED  Breaking changes possible. declared runtime constraint (pom.xml) allows the new version; run full build/tests before merging
+
+Validation Details
+Dockerfile Location  Validation                  Details
+-------------------  --------------------------  -------
+Dockerfile           NOT_RUN (nothing modified)  -
+
+Notes
+  - None of the branches dev, development, develop, main exist; used the default branch 'main'
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: java-maven-service
+Repository Link: https://github.com/example-org/java-maven-service
+
+Total Dockerfiles: 1
+Total FROM instructions: 2
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 2
+Major Upgrade Recommendations: 1
+Overall Status: SUCCESS

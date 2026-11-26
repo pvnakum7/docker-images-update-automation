@@ -1,0 +1,42 @@
+Repository: java-gradle-service
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/java-gradle-service
+Branch Analysed: main
+GitHub Token Used: GIT_TOKEN
+
+Technology Detection Summary
+  - Java Gradle: .  [java 25 (build.gradle.kts)]
+  - Java: .  [java 25 (build.gradle.kts)]
+
+"Dockerfile Image Update Details"
+Dockerfile Location  Registry    Image Name       Old Image Version             New Image Version               Upgrade Type  Status                     Remarks
+-------------------  ----------  ---------------  ----------------------------  ------------------------------  ------------  -------------------------  -------------------------------------------------------------------------------------------------------------------------------------
+Dockerfile           Docker Hub  eclipse-temurin  eclipse-temurin:17.0.9_9-jre  eclipse-temurin:17.0.13_11-jre  Same Major    UPDATE_AVAILABLE           Stable update (via ARG JRE_TAG)
+Dockerfile           Docker Hub  eclipse-temurin  eclipse-temurin:17.0.9_9-jre  eclipse-temurin:25.0.1_8-jre    New Major     MAJOR_UPGRADE_RECOMMENDED  Breaking changes possible. declared runtime constraint (build.gradle.kts) allows the new version; run full build/tests before merging
+backend/Dockerfile   Docker Hub  eclipse-temurin  eclipse-temurin:17.0.9_9-jre  eclipse-temurin:17.0.13_11-jre  Same Major    UPDATE_AVAILABLE           Stable update
+backend/Dockerfile   Docker Hub  eclipse-temurin  eclipse-temurin:17.0.9_9-jre  eclipse-temurin:25.0.1_8-jre    New Major     MAJOR_UPGRADE_RECOMMENDED  Breaking changes possible. declared runtime constraint (build.gradle.kts) allows the new version; run full build/tests before merging
+
+Validation Details
+Dockerfile Location  Validation                  Details
+-------------------  --------------------------  -------
+Dockerfile           NOT_RUN (nothing modified)  -
+backend/Dockerfile   NOT_RUN (nothing modified)  -
+
+Notes
+  - None of the branches dev, development, develop, main exist; used the default branch 'main'
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: java-gradle-service
+Repository Link: https://github.com/example-org/java-gradle-service
+
+Total Dockerfiles: 2
+Total FROM instructions: 2
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 2
+Major Upgrade Recommendations: 2
+Overall Status: SUCCESS

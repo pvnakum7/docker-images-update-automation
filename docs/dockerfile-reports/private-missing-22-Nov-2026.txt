@@ -1,0 +1,30 @@
+Repository: private-missing
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/private-missing
+
+REPOSITORY PROCESSING FAILED: not_found: repository not found (or token has no access to this private repository)
+
+Technology Detection Summary
+  No supported technology detected
+
+"Dockerfile Image Update Details"
+(no Dockerfiles found)
+
+Validation Details
+(none)
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: private-missing
+Repository Link: https://github.com/example-org/private-missing
+
+Total Dockerfiles: 0
+Total FROM instructions: 0
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 0
+Major Upgrade Recommendations: 0
+Overall Status: FAILED

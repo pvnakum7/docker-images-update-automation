@@ -1,0 +1,8 @@
+# Runtime dependencies - "latest within the major version": every install picks the newest release below the next major,
+# so security/bug-fix updates arrive automatically but a breaking major (7.x, 3.x, ...) never does.
+# Last verified together: PyYAML 6.0.4, openpyxl 3.1.5, requests 2.34.2, pytest 9.2.0 (2026-11-22).
+# Python: target 3.15 (latest stable); minimum 3.11. See .python-version.
+# For a fully reproducible build use:  pip freeze > requirements.lock  (CI can then run: pip install -r requirements.lock)
+PyYAML>=6.0.4,<7
+openpyxl>=3.1.5,<4
+requests>=2.34.2,<3

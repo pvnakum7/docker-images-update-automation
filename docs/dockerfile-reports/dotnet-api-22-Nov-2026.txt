@@ -1,0 +1,40 @@
+Repository: dotnet-api
+Date: 2026-11-22
+Repository URL: https://github.com/example-org/dotnet-api
+Branch Analysed: main
+GitHub Token Used: GIT_TOKEN2
+
+Technology Detection Summary
+  - .NET: .  [target framework net8.0 (Api.csproj)]
+
+"Dockerfile Image Update Details"
+Dockerfile Location  Registry       Image Name                       Old Image Version                      New Image Version                       Upgrade Type  Status                     Remarks
+-------------------  -------------  -------------------------------  -------------------------------------  --------------------------------------  ------------  -------------------------  -------------------------------------------------------------------------------------------------------------------------------
+Dockerfile           Microsoft MCR  mcr.microsoft.com/dotnet/sdk     mcr.microsoft.com/dotnet/sdk:8.0.100   mcr.microsoft.com/dotnet/sdk:8.0.404    Same Major    UPDATE_AVAILABLE           Stable update
+Dockerfile           Microsoft MCR  mcr.microsoft.com/dotnet/sdk     mcr.microsoft.com/dotnet/sdk:8.0.100   mcr.microsoft.com/dotnet/sdk:9.0.200    New Major     MAJOR_UPGRADE_RECOMMENDED  Breaking changes possible. declared runtime constraint (Api.csproj) allows the new version; run full build/tests before merging
+Dockerfile           Microsoft MCR  mcr.microsoft.com/dotnet/aspnet  mcr.microsoft.com/dotnet/aspnet:8.0.1  mcr.microsoft.com/dotnet/aspnet:8.0.11  Same Major    UPDATE_AVAILABLE           Stable update
+Dockerfile           Microsoft MCR  mcr.microsoft.com/dotnet/aspnet  mcr.microsoft.com/dotnet/aspnet:8.0.1  mcr.microsoft.com/dotnet/aspnet:9.0.0   New Major     MAJOR_UPGRADE_RECOMMENDED  Breaking changes possible. declared runtime constraint (Api.csproj) allows the new version; run full build/tests before merging
+
+Validation Details
+Dockerfile Location  Validation                  Details
+-------------------  --------------------------  -------
+Dockerfile           NOT_RUN (nothing modified)  -
+
+Notes
+  - None of the branches dev, development, develop, main exist; used the default branch 'main'
+
+Repo Dockerfile Image Update Summary:
+
+Date: 2026-11-22
+Repository Name: dotnet-api
+Repository Link: https://github.com/example-org/dotnet-api
+
+Total Dockerfiles: 1
+Total FROM instructions: 2
+Updated Images: 0
+Skipped Images: 0
+Failed Images: 0
+Up-to-date Images: 0
+Pending (update proposed, not applied) Images: 2
+Major Upgrade Recommendations: 2
+Overall Status: SUCCESS
